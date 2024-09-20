@@ -1,0 +1,2 @@
+recursive-include etplib *
+recursive-exclude etplib __pycache__/*

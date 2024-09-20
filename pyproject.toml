@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=60", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etplib"
+authors = [
+    { name = "Jabez Winston", email = "jabezwinston@gmail.com" },
+    { name = "Stephen Kingston", email = "stephen.psk@gmail.com" },
+]
+description = "Embedded Tester Protocol (ETP) Library"
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = ["pyserial"]
+dynamic = ["version"]
+keywords = ["embedded", "firmware", "test", "protocol", "gpio", "i2c", "adc", "pwm"]
+license = {text = "MIT"}
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+]
+
+[project.urls]
+"Homepage" = "https://www.embeddedtester.com/"
+"Source code" = "https://github.com/jabezwinston/etplib-python"
+
+[tool.setuptools.dynamic]
+version = {attr = "etplib.version.VERSION"}
+
