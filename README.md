@@ -1,6 +1,12 @@
 # Embedded Tester Protocol (ETP) library for Python
 
+`etplib` allows access to microcontroller peripherals from a host computer. Microcontroller should be running the ETP firmware.
+
 ## Inital setup
+- Install `etplib` using pip
+  ```terminal
+  pip install etplib
+  ```
 - Download [ETP firmware for Arduino Uno](https://github.com/jabezwinston/etplib/releases/download/v0.1.0/etp_fw_arduino_uno_v0.1.0.hex) (the only supported device)
 - Flash ETP firmware to the Arduino Uno using `avrdude` (Get avrdude [here](https://github.com/avrdudes/avrdude/releases/))
 

@@ -59,6 +59,11 @@ class ETP:
         self.rsp_queue = queue.Queue()
         self.lock = threading.Lock()
 
+        self.gpio = GPIO(self)
+        self.adc = ADC(self)
+        self.i2c = I2C(self)
+        self.pwm = PWM(self)
+
     def reader_thread(self):
         while self.ser_open:
             try:
@@ -120,11 +125,6 @@ class ETP:
         self.reader_thread_handle.start()
         self.writer_thread_handle = threading.Thread(target=self.writer_thread)
         self.writer_thread_handle.start()
-
-        self.gpio = GPIO(self)
-        self.adc = ADC(self)
-        self.i2c = I2C(self)
-        self.pwm = PWM(self)
 
     """
     Get Firmware Information

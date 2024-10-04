@@ -5,8 +5,8 @@ Embedded Tester Protocol Library - ADC
 
 Author  : Jabez Winston C <jabezwinston@gmail.com>
 License : MIT
-Date    : 13-Sep-2024
+Date    : 04-Oct-2024
 
 """
 
-VERSION="0.1.0"
+VERSION="0.1.1"

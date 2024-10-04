@@ -17,8 +17,9 @@ keywords = ["embedded", "firmware", "test", "protocol", "gpio", "i2c", "adc", "p
 license = {text = "MIT"}
 
 classifiers = [
+    "Topic :: Software Development :: Embedded Systems",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: BSD License",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",

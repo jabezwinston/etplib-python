@@ -30,7 +30,7 @@ def main():
         'PB3': {"mode": 'input', "type": 'pull_down'}
     })
 
-    print(f"GPIO read : {etp.gpio.read(["PB4", "PB3"])}\n")
+    print(f"GPIO read : {etp.gpio.read(['PB4', 'PB3'])}\n")
 
     # PWM
     # 3, 5, 6, 9, 10, 11
