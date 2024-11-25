@@ -31,7 +31,7 @@ class PWM:
         pwm_info_cmd = self.code << 8 | self.ops['info']
         cmd = self.etp.frame_packet(pwm_info_cmd)
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
         num_pwm, max_freq, freq_unit, port_count = struct.unpack('<BHBB', rsp[0:5])
         pwm_ports = list(struct.iter_unpack('<BI', rsp[5:]))
         pwm_info = []
@@ -67,6 +67,7 @@ class PWM:
 
         cmd = self.etp.frame_packet(pwm_init_cmd, struct.pack('<BII', ord(port), pwm_pin_mask, pwm_enable_mask))
         self.etp.cmd_queue.put(cmd)
+        self.etp.read_rsp()
 
     """
     Control PWM pins
@@ -85,3 +86,4 @@ class PWM:
         duty_cycle = int(duty_cycle * 100)
         cmd = self.etp.frame_packet(pwm_ctrl_cmd, struct.pack('<BBHBH', ord(port), pin_num, freq, freq_unit, duty_cycle))
         self.etp.cmd_queue.put(cmd)
+        self.etp.read_rsp()

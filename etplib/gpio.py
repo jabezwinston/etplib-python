@@ -40,16 +40,16 @@ class GPIO:
         # Get the number of GPIO ports
         cmd = self.etp.frame_packet(gpio_info_cmd, struct.pack('B', self.info_cmds['port_count']))
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
-        port_count = struct.unpack('B', rsp)[0]
+        rsp, _ = self.etp.read_rsp()
+        port_count = rsp[1]
 
         # Get the GPIO pins
         cmd = self.etp.frame_packet(gpio_info_cmd, struct.pack('B', self.info_cmds['pins']))
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
 
         # Use iter to unpack the GPIO pins as a list of tuples
-        pins = list(struct.iter_unpack('<BI', rsp))
+        pins = list(struct.iter_unpack('<BI', rsp[1:]))
 
         pin_info = []
 
@@ -140,7 +140,7 @@ class GPIO:
 
         cmd = self.etp.frame_packet(gpio_read_cmd, struct.pack('<BI', ord(port), pin_mask))
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
         port, pin_mask, port_value = struct.unpack('<BII', rsp)
         pins = self.etp.mask_to_bits(pin_mask, 32)
         for pin in pins:

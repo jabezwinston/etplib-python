@@ -53,6 +53,12 @@ def main():
         print("(A0) ADC sample " + str(i) + " :", etp.adc.read("a0"))
         time.sleep(0.5)
 
+    # SPI
+    print(f"SPI Info: {etp.spi.get_info()}\n")
+    etp.spi.init(0, etp.spi.MODE0, 500)  # Bus 0, Mode 0, 500 KHz
+    rx_data = etp.spi.transfer(0, [0x01, 0x02, 0x03, 0x04])
+    print("SPI Transfer : ", rx_data)
+
     # Blink LED - 10 times
     for i in range(10):
         etp.gpio.write({"PB5": 1})

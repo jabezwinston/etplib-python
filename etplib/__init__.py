@@ -15,5 +15,5 @@ from .lib import *
 __version__ = VERSION
 __author__  = "Jabez Winston C"
 __license__ = "MIT"
-__all__     = ['ETP', 'GPIO', 'ADC', 'I2C', 'PWM']
+__all__     = ['ETP', 'GPIO', 'ADC', 'I2C', 'PWM', 'SPI']
 __package__ = "etplib"

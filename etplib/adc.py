@@ -33,7 +33,7 @@ class ADC:
         adc_info_cmd = self.code << 8 | self.ops['info']
         cmd = self.etp.frame_packet(adc_info_cmd)
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
         num_adc, num_channels, resolution, reference, max_rate, port_count = struct.unpack('<BBBHIB', rsp[0:10])
         adc_ports = list(struct.iter_unpack('<BI', rsp[10:]))
         adc_info = []
@@ -70,6 +70,7 @@ class ADC:
 
         cmd = self.etp.frame_packet(adc_init_cmd, struct.pack('<BII', ord(port), adc_pin_mask, adc_enable_mask))
         self.etp.cmd_queue.put(cmd)
+        self.etp.read_rsp()
 
     """
     Control the ADC pin
@@ -108,7 +109,7 @@ class ADC:
 
         cmd = self.etp.frame_packet(adc_ctrl_cmd, struct.pack('<BBBHHBB', ord(port), pin, resolution, reference_mv, rate, unit, start))
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
         return rsp
 
     """
@@ -121,6 +122,6 @@ class ADC:
         port, pin = self.etp.gpio.decode_gpio_pin(pin_str)
         cmd = self.etp.frame_packet(adc_read_cmd, struct.pack('<BB', ord(port), pin))
         self.etp.cmd_queue.put(cmd)
-        rsp = self.etp.read_rsp()
+        rsp, _ = self.etp.read_rsp()
         value = struct.unpack('<I', rsp)[0]
         return value

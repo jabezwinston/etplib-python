@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.6"
 dependencies = ["pyserial"]
 dynamic = ["version"]
-keywords = ["embedded", "firmware", "test", "protocol", "gpio", "i2c", "adc", "pwm"]
+keywords = ["embedded", "firmware", "test", "protocol", "gpio", "i2c", "adc", "pwm", "spi"]
 license = {text = "MIT"}
 
 classifiers = [
