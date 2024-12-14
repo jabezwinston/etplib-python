@@ -32,12 +32,12 @@ class I2C:
     def __init__(self, etp):
         self.etp = etp
 
-    """
-    Query I2C pin information, bus counts and supported speeds.
-
-    """
-
-    def get_info(self):
+    def get_info(self) -> dict:
+        """Query I²C pin information, bus counts and supported speeds.
+        
+        Returns:
+            Dictionary containing I²C bus count, supported speeds and pin information.
+        """
         i2c_info_cmd = self.code << 8 | self.ops['info']
         # Get the number of I2C buses
         cmd = self.etp.frame_packet(i2c_info_cmd, struct.pack('<B', self.info_cmds['bus_count']))
@@ -67,24 +67,34 @@ class I2C:
 
         return {"bus_count": bus_count, "bus_speeds": bus_speeds, "info": pin_info}
     
-    """
-    Initialize I2C bus speed
-    
-    """
-    
-    def init(self, bus, speed):
+    def init(self, bus: int, speed: int) -> int:
+        """ Initialize I²C bus with speed.
+        
+        Args:
+            bus: I²C bus number.
+            speed: I²C bus speed in kHz.
+
+        Returns:
+            Initialization status.
+        
+        """
         i2c_init_cmd = self.code << 8 | self.ops['init']
         cmd = self.etp.frame_packet(i2c_init_cmd, struct.pack('<BH', bus, speed))
         self.etp.cmd_queue.put(cmd)
-        rsp, _ = self.etp.read_rsp()
-        return rsp
+        _, status = self.etp.read_rsp()
+        return status
     
-    """
-    Scan I2C bus for devices
+    def scan(self, bus: int, start_addr: int = 0, end_addr: int = 0x7F) -> list:
+        """ Scan I²C bus for devices.
+        
+        Args:
+            bus: I²C bus number.
+            start_addr: Start address to scan.
+            end_addr: End address to scan.
 
-    """
-    
-    def scan(self, bus=0, start_addr=0, end_addr=0x7F):
+        Returns:
+            List of I²C device addresses.
+        """
         i2c_scan_cmd = self.code << 8 | self.ops['scan']
         cmd = self.etp.frame_packet(i2c_scan_cmd, struct.pack('<BHH', bus, start_addr, end_addr))
         self.etp.cmd_queue.put(cmd)
@@ -94,26 +104,36 @@ class I2C:
         addr_list = list(struct.unpack('<' + 'H'*addr_count, rsp[1:]))
         return addr_list
     
-    """
-    Read data from I2C device
+    def read(self, bus, addr: int, num_bytes: int) -> list[int]:
+        """ Read data from I²C device.
+        
+        Args:
+            bus (int): I²C bus number.
+            addr (int): I²C device address.
+            num_bytes (int): Number of bytes to read.
 
-    """
-    
-    def read(self, bus, addr, num_bytes):
+        Returns:
+            list[int]: List of bytes read from the device.
+        """
         i2c_read_cmd = self.code << 8 | self.ops['read']
         cmd = self.etp.frame_packet(i2c_read_cmd, struct.pack('<BHB', bus, addr, num_bytes))
         self.etp.cmd_queue.put(cmd)
         rsp, _ = self.etp.read_rsp()
         len = rsp[0]
-        data = list(rsp[1:])
+        data = list(rsp[1:len+1])
         return data
-    
-    """
-    Write data to I2C device
 
-    """
-    
-    def write(self, bus, addr, data):
+    def write(self, bus, addr: int, data: list) -> int:
+        """ Write data to I²C device.
+
+        Args:
+            bus (int): I²C bus number.
+            addr (int): I²C device address.
+            data (list): List of bytes to write.
+
+        Returns:
+            Write status.
+        """
         i2c_write_cmd = self.code << 8 | self.ops['write']
         length = len(data)
         cmd = self.etp.frame_packet(i2c_write_cmd, struct.pack('<BHB', bus, addr, length) + bytes(data))
@@ -121,31 +141,42 @@ class I2C:
         rsp, _ = self.etp.read_rsp()
         return rsp[0]
     
-    """
-    Read data from I2C device register
+    def read_reg(self, bus: int, addr: int, reg: int, num_bytes: int) -> list[int]:
+        """ Read data from I²C device register.
 
-    """
-    
-    def read_reg(self, bus, addr, reg, num_bytes):
+        Args:
+            bus (int): I²C bus number.
+            addr (int): I²C device address.
+            reg (int): Register address.
+            num_bytes (int): Number of bytes to read.
+
+        Returns:
+            List of bytes read from the register.
+        """
         i2c_read_reg_cmd = self.code << 8 | self.ops['read_reg']
         cmd = self.etp.frame_packet(i2c_read_reg_cmd, struct.pack('<BHHB', bus, addr, reg, num_bytes))
         self.etp.cmd_queue.put(cmd)
         rsp, _ = self.etp.read_rsp()
         len = rsp[0]
-        data = list(rsp[1:])
+        data = list(rsp[1:len+1])
         return data
     
-    """
-    Write data to I2C device register
-    
-    """
-    
-    def write_reg(self, bus, addr, reg, data):
+    def write_reg(self, bus: int, addr: int, reg: int, data: list[int]) -> int:
+        """ Write data to I²C device register.
+
+        Args:
+            bus: I²C bus number.
+            addr: I²C device address.
+            reg: Register address.
+            data: List of bytes to write.
+
+        Returns:
+            Write status.
+        
+        """
         i2c_write_reg_cmd = self.code << 8 | self.ops['write_reg']
         length = len(data)
         cmd = self.etp.frame_packet(i2c_write_reg_cmd, struct.pack('<BHHB', bus, addr, reg, length) + bytes(data))
         self.etp.cmd_queue.put(cmd)
-        rsp, _ = self.etp.read_rsp()
-        return rsp[0]
-
-        
+        _, status = self.etp.read_rsp()
+        return status

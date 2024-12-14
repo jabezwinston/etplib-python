@@ -12,6 +12,8 @@ Date    : 17-Sep-2024
 import struct
 
 class GPIO:
+    """GPIO class."""
+
     code = 1
     ops = {
         'info': 0,
@@ -28,14 +30,22 @@ class GPIO:
     }
 
     def __init__(self, etp):
+        """Initialize GPIO class with an ETP instance."""
         self.etp = etp
 
-    """
-    Get GPIO port and pin information
-    
-    """
+    def get_info(self) -> dict:
+        """Get GPIO port and pin information.
+        
+        Returns:
+            Dictionary containing GPIO port count and pin information.
 
-    def get_info(self):
+        Dictionary format:
+            - `port_count` (int): Number of GPIO ports.
+            - `info` (list): List of dictionaries containing GPIO port and pin information.
+                - `port` (str): GPIO port identifier.
+                - `pins` (int): GPIO pins available in the port.
+        
+        """
         gpio_info_cmd = self.code << 8 | self.ops['info']
         # Get the number of GPIO ports
         cmd = self.etp.frame_packet(gpio_info_cmd, struct.pack('B', self.info_cmds['port_count']))
@@ -58,7 +68,7 @@ class GPIO:
 
         return {"port_count": port_count, "info": pin_info}
 
-    def decode_gpio_pin(self, pin):
+    def decode_gpio_pin(self, pin: str) -> tuple:
         port = ''
         pin_num = 0
 
@@ -77,20 +87,35 @@ class GPIO:
 
         return port, pin_num
     
-    def encode_gpio_pin(self, port, pin_num):
+    def encode_gpio_pin(self, port, pin_num) -> str:
         if port >= ord('A') and port <= ord('Z'):
             return f"P{chr(port)}{pin_num}"
         elif port >= ord('a') and port <= ord('z'):
             return f"{chr(port)}{pin_num}"
         elif port == ord('_'):
             return f"_{pin_num}"
+
+    def init(self, pin_list: dict) -> int:
+        """
+        Initialize GPIO pins with the given configuration.
+
+        Args:
+            pin_list (dict): A dictionary where keys are GPIO pin identifiers and values are 
+                                dictionaries containing configuration options for each pin. 
+                                Configuration options include:
+
+                Dictionary format:
+
+                - `mode`: Specifies the direction of the pin ('input' or 'output').
+
+                - `type`: Specifies the pull type of the pin ('pull_up' or 'pull_down').
+
+                - `interrupt`: Specifies the interrupt type for the pin 
+                            ('rising_edge', 'falling_edge', or 'both_edges').
         
-    """
-    Initialize GPIO pins
-
-    """
-
-    def init(self, pin_list):
+        Returns:
+            Status of the operation.
+        """
         gpio_init_cmd = self.code << 8 | self.ops['init']
         dir_mask = 0
         dir_val = 0
@@ -123,13 +148,20 @@ class GPIO:
 
         cmd = self.etp.frame_packet(gpio_init_cmd, struct.pack('<BIIIIIQ', ord(port), dir_mask, dir_val, pull_mask, pull_val, int_mask, int_val))
         self.etp.cmd_queue.put(cmd)
-        self.etp.read_rsp()
+        _, status = self.etp.read_rsp()
+        return status
 
-    """
-    Read GPIO pins provided as list
-    """
 
-    def read(self, pin_list):
+    def read(self, pin_list: list[str]) -> dict:
+        """Read GPIO pins provided as list.
+
+        Args:
+            pin_list: List of GPIO pins to read.
+
+        Returns:
+            Dictionary of GPIO pins and their states.
+
+        """
         pin_read = dict()
         gpio_read_cmd = self.code << 8 | self.ops['read']
         pin_mask = 0
@@ -148,12 +180,14 @@ class GPIO:
 
         return pin_read
     
-    """
-    Write GPIO pins provided as dictionary
-    
-    """
 
-    def write(self, pin_state):
+    def write(self, pin_state: dict):
+        """Write GPIO pins provided as dictionary.
+
+        Args:
+            pin_state: Dictionary of GPIO pins and their states.
+
+        """
         gpio_write_cmd = self.code << 8 | self.ops['write']
         port = ''
         port_mask = 0

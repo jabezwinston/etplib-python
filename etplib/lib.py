@@ -23,6 +23,7 @@ from .pwm import PWM
 from .spi import SPI
 
 class ETP:
+    """Embedded Tester Protocol Library"""
     general_ops = {
         'fw_info': 0,
         'reset': 1,
@@ -192,6 +193,7 @@ class ETP:
             return None
 
     def open(self):
+        """ Open ETP Device."""
         if self.transport == 'serial':
             self.transport_handle = serial.Serial(self.port, self.baudrate, timeout=1)
             self.transport_handle.timeout = 0.1
@@ -210,11 +212,20 @@ class ETP:
         self.writer_thread_handle.start()
 
 
-    """
-    Get Firmware Information
-    
-    """
-    def get_fw_info(self):
+
+    def get_fw_info(self) -> dict:
+        """ Get Firmware Information 
+        
+        Returns:
+            dict: Firmware information.
+
+                | Key           | Value Type | Description                                  |
+                |---------------|------------|----------------------------------------------|
+                | version       | str        | Firmware version                             |
+                | fw_version    | str        | Firmware version                             |
+                | build_date    | str        | Firmware build date                          |
+                | hw_type       | str        | Hardware type                                |
+        """
         self.cmd_queue.put(self.frame_packet(self.general_ops['fw_info'], [self.fw_info_cmds['version']]))
         rsp, _ = self.read_rsp()
         version = struct.unpack('<BBB', rsp[1:4])
@@ -236,20 +247,24 @@ class ETP:
         hw_type = rsp[1:].decode('utf-8')
         return {'version': version_str, 'fw_version': fw_version_str, 'build_date': build_date_str, 'hw_type': hw_type}
     
-    """
-    Reset the device
-        
-    """
-    def reset(self):
-        self.cmd_queue.put(self.frame_packet(self.general_ops['reset'], [1]))
-        rsp = self.read_rsp()
-        return rsp
-    
-    """
-    Get Supported Operations
 
-    """
-    def get_supported_ops(self, start_op = 0, end_op = 0xFFFF):
+    def reset(self):
+        """ Reset the device."""
+        self.cmd_queue.put(self.frame_packet(self.general_ops['reset'], [1]))
+        self.read_rsp()
+
+    def get_supported_ops(self, start_op: int = 0, end_op: int = 0xFFFF) -> list[int]:
+        """ Get Supported Operations 
+        
+        
+        Args:
+            start_op: Start operation code
+            end_op: End operation code
+
+        Returns:
+            List of supported operation codes.
+
+        """
         supported_ops = []
         sub_cmd = [start_op & 0xFF, start_op >> 8, end_op & 0xFF, end_op >> 8]
         p = self.frame_packet(self.general_ops['get_supported_ops'], sub_cmd)
@@ -284,15 +299,11 @@ class ETP:
     Debug Print control
     
     """
-    def fw_dbg_print_ctrl(self, log_level):
+    def fw_dbg_print_ctrl(self, log_level: int):
         self.cmd_queue.put(self.frame_packet(self.general_ops['debug_print'], [log_level]))
 
-    """
-    Configure Transport
-
-    """
-
     def configure_transport(self, transport, **kwargs):
+        """Configure Transport."""
         if transport == 'serial':
             self.port = kwargs['port']
             self.baudrate = kwargs['baudrate']
@@ -322,6 +333,7 @@ class ETP:
 
 
     def close(self):
+        """Close ETP Device."""
         self.transport_open = False
         self.reader_thread_handle.join()
         self.writer_thread_handle.join()

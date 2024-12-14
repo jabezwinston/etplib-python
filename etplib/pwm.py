@@ -22,12 +22,20 @@ class PWM:
     def __init__(self, etp):
         self.etp = etp
 
-    """
-    Query PWM information
-    
-    """
+    def get_info(self) -> dict:
+        """Query PWM information.
+        
+        Returns:
+            Dictionary containing PWM information of the following format:
+                
+                | Key           | Value Type | Description                                  |
+                |---------------|------------|----------------------------------------------|
+                | num_pwm       | int        | Number of PWMs                               |
+                | max_freq      | int        | Maximum frequency of PWM                     |
+                | port_count    | int        | Number of PWM ports                          |
+                | ports         | list       | List of PWM ports and their corresponding pins |
 
-    def get_info(self):
+        """
         pwm_info_cmd = self.code << 8 | self.ops['info']
         cmd = self.etp.frame_packet(pwm_info_cmd)
         self.etp.cmd_queue.put(cmd)
@@ -49,34 +57,45 @@ class PWM:
             'port_count': port_count,
             'ports': pwm_info
         }
-    
-    """
-    Enable/Disable PWM pins
 
-    """
+    def init(self, pin_list: dict) -> int:
+        """Enable/Disable PWM pins.
+        
+        Args:
+            pin_list: Dictionary containing PWM pins and their enable status.
 
-    def init(self, pin_list):
+        Returns:
+            Initialization status.    
+
+        """
         pwm_init_cmd = self.code << 8 | self.ops['init']
         pwm_pin_mask = 0
         pwm_enable_mask = 0
         for pin in pin_list.keys():
             port, pin_num = self.etp.gpio.decode_gpio_pin(pin)
-            if (pin_list[pin] == True):
+            if pin_list[pin] is True:
                 pwm_enable_mask |= (1 << pin_num)
             pwm_pin_mask |= (1 << pin_num)
 
         cmd = self.etp.frame_packet(pwm_init_cmd, struct.pack('<BII', ord(port), pwm_pin_mask, pwm_enable_mask))
         self.etp.cmd_queue.put(cmd)
-        self.etp.read_rsp()
+        _, status = self.etp.read_rsp()
+        return status
 
-    """
-    Control PWM pins
-    
-    """
+    def ctrl(self, pin: str, duty_cycle: float, freq: int = 1000) -> int:
+        """Control PWM pin.
 
-    def ctrl(self, pin_str, duty_cycle, freq = 1000):
+        Args:
+            pin: PWM pin identifier.
+            duty_cycle (float): Duty cycle of the PWM signal.
+            freq (int): Frequency of the PWM signal in Hz.
+
+        Returns:
+            Control status.
+
+        """
         pwm_ctrl_cmd = self.code << 8 | self.ops['ctrl']
-        port, pin_num = self.etp.gpio.decode_gpio_pin(pin_str)
+        port, pin_num = self.etp.gpio.decode_gpio_pin(pin)
         freq_unit = 0
         if freq < 65535:
             freq_unit = 0
@@ -86,4 +105,5 @@ class PWM:
         duty_cycle = int(duty_cycle * 100)
         cmd = self.etp.frame_packet(pwm_ctrl_cmd, struct.pack('<BBHBH', ord(port), pin_num, freq, freq_unit, duty_cycle))
         self.etp.cmd_queue.put(cmd)
-        self.etp.read_rsp()
+        _, status = self.etp.read_rsp()
+        return status
